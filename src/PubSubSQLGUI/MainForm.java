@@ -355,7 +355,7 @@ public class MainForm extends JFrame implements ActionListener {
 	private JTabbedPane resultsTabContainer;
 	private JTextArea statusText;
 	private JTextArea jsonText;
-	private pubsubsql.Client client = pubsubsql.Factory.NewClient();
+	private pubsubsql.Client client = new pubsubsql.Client();
 	private String connectedAddress = "";
 	private boolean cancelExecuteFlag = false;
 	private TableDataset dataset = new TableDataset();

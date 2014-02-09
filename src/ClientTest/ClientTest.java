@@ -86,7 +86,7 @@ public class ClientTest {
 
 	private void TestConnectDisconnect() {
 		register("TestConnectDisconnect");
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_CONNECTED(client, true);
 		ASSERT_DISCONNECT(client);	
@@ -103,7 +103,7 @@ public class ClientTest {
 
 	private void TestExecuteStatus() {
 		register("TestExecute");
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_EXECUTE(client, "status", true);
 		ASSERT_ACTION(client, "status");
@@ -112,7 +112,7 @@ public class ClientTest {
 
 	private void TestExecuteInvalidCommand() {
 		register("TestExecuteInvalidCommand");
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_EXECUTE(client, "blablabla", false);
 	}
@@ -120,7 +120,7 @@ public class ClientTest {
 	private void TestInsertOneRow() {
 		register("TestInsertOneRow");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3)", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -142,7 +142,7 @@ public class ClientTest {
 	private void TestInsertManyRows() {
 		register("TestInsertManyRows");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3)", TABLE);
 		for (int r = 0; r < ROWS; r++) {
@@ -169,7 +169,7 @@ public class ClientTest {
 		register("TestSelectOneRow");
 		newtable();
 		insertRow();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		// select one row
 		String command = String.format("select * from %s", TABLE);
@@ -195,7 +195,7 @@ public class ClientTest {
 		register("TestSelectRow");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("select * from %s", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -221,7 +221,7 @@ public class ClientTest {
 		register("TestUpdateOneRow");
 		newtable();
 		insertRow();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("update %s set col1 = newvalue", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -234,7 +234,7 @@ public class ClientTest {
 		register("TestUpdateManyRow");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("update %s set col1 = newvalue", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -247,7 +247,7 @@ public class ClientTest {
 		register("TestDeleteOneRow");
 		newtable();
 		insertRow();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("delete from %s", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -260,7 +260,7 @@ public class ClientTest {
 		register("TestDeleteManyRow");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("delete from %s ", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -273,7 +273,7 @@ public class ClientTest {
 		register("TestKey");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("key %s col1", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -285,7 +285,7 @@ public class ClientTest {
 		register("TestTag");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("tag %s col1", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -296,7 +296,7 @@ public class ClientTest {
 	private void TestSubscribeUnsubscribe() {
 		register("TestSubscribeUnsubscribe");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe * from %s", TABLE);
 		// subscribe
@@ -314,7 +314,7 @@ public class ClientTest {
 	private void TestSubscribeUnsubscribeByPubSubId() {
 		register("TestSubscribeUnsubscribeByPubSubId");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe * from %s", TABLE);
 		// subscribe
@@ -332,7 +332,7 @@ public class ClientTest {
 	private void TestPubSubTimeout() {
 		register("TestPubSubTimeout");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_WAIT_FOR_PUBSUB(client, 10, false);	
 	}
@@ -341,7 +341,7 @@ public class ClientTest {
 		register("TestSubscribeSkip");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe skip * from %s", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -356,7 +356,7 @@ public class ClientTest {
 		register("TestPubSubAddOnSubscribe");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe * from %s", TABLE);
 		// subscribe
@@ -372,7 +372,7 @@ public class ClientTest {
 	private void TestPubSubInsert() {
 		register("TestPubSubInsert");
 		newtable();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe * from %s", TABLE);
 		// subscribe
@@ -390,7 +390,7 @@ public class ClientTest {
 		register("TestPubSubUpdate");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe skip * from %s", TABLE);
 		// subscribe
@@ -411,7 +411,7 @@ public class ClientTest {
 		register("TestPubSubDelete");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("subscribe skip * from %s", TABLE);
 		// subscribe
@@ -432,7 +432,7 @@ public class ClientTest {
 		register("TestPubSubRemove");
 		newtable();
 		insertRows();
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		// key col1
 		String command = String.format("key %s col1", TABLE);
@@ -478,7 +478,7 @@ public class ClientTest {
 	}
 
 	private void insertRow() {
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3)", TABLE);
 		ASSERT_EXECUTE(client, command, true);
@@ -486,7 +486,7 @@ public class ClientTest {
 	}
 
 	private void insertRows() {
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		for (int row = 0; row < ROWS; row++) {	
 			String command = String.format("insert into %s (col1, col2, col3) values (%s:col1, %s:col2, %s:col3)", TABLE, row, row, row);
@@ -496,7 +496,7 @@ public class ClientTest {
 	}
 
 	private void key(String column) {
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("key %s %s", TABLE, column);
 		ASSERT_EXECUTE(client, command, true);
@@ -504,7 +504,7 @@ public class ClientTest {
 	}
 
 	private void tag(String column) {
-		Client client = pubsubsql.Factory.NewClient();
+		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		String command = String.format("tag %s %s", TABLE, column);
 		ASSERT_EXECUTE(client, command, true);

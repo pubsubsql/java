@@ -117,7 +117,7 @@ public class Simulator implements Runnable {
 		return builder.toString();
 	}
 
-	private pubsubsql.Client client = pubsubsql.Factory.NewClient();
+	private pubsubsql.Client client = new pubsubsql.Client();
 	private volatile boolean stopFlag = false;
 	private Thread thread;
 	private ArrayList<String> ids = new ArrayList<String>();

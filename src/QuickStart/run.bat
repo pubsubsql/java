@@ -1,10 +1,10 @@
-javac -d . -cp .;../../lib/* ClientTest.java
+javac -d . -cp .;../../lib/* QuickStart.java
 
-jar cvf ../../bin/ClientTest.jar ClientTest.class
+jar cvf ../../bin/QuickStart.jar QuickStart.class
 
-jar ufm ../../bin/ClientTest.jar ../manifest
+jar ufm ../../bin/QuickStart.jar ../manifest
 
-jar ufe ../../bin/ClientTest.jar ClientTest ClientTest.class
+jar ufe ../../bin/QuickStart.jar QuickStart QuickStart.class
 
-java -jar ../../bin/ClientTest.jar
+java -jar ../../bin/QuickStart.jar
 

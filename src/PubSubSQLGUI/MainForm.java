@@ -34,6 +34,7 @@ public class MainForm extends JFrame implements ActionListener {
 		// splitter
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, queryText, resultsTabContainer); 
 		this.add(splitPane, BorderLayout.CENTER);	
+		splitPane.setResizeWeight(0.5);	
 		// position
         setSize(screen.width / 2, screen.height / 2);
         setLocation(screen.width / 4, screen.height / 4);

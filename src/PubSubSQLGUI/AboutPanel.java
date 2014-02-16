@@ -28,7 +28,8 @@ class AboutPanel extends javax.swing.JPanel {
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         okButton.setText("OK");
         licenseText.setText("Copyright (C) 2014 CompleteDB LLC. \nThis program is free software: you can redistribute it and/or modify it under the terms of the Apache License Version 2.0 http://www.apache.org/licenses.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-        scrollPane.setViewportView(licenseText);
+        licenseText.setEditable(false);
+	scrollPane.setViewportView(licenseText);
 		//
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);

@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 --------------------+--------------------
 */
 
-class NetHeader {
+public class NetHeader {
 	// JAVA VM always uses BIG ENDIAN to encode integer types so no conversion is nessasary
     public static final int HEADER_SIZE = 8;
     public int MessageSize;

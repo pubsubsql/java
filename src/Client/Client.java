@@ -14,114 +14,94 @@ package pubsubsql;
 import com.google.gson.Gson;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.lang.*;
+import java.util.concurrent.*;
+import java.io.*;
 
 public class Client {
+	private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+	private int CONNECTION_TIMEOUT = 500;
+	private int requestId = 1;
+	private String host;
+	private int port;
+	private NetHelper rw = new NetHelper();
+	private ResponseData response = new ResponseData();
+	private String rawjson = null;
+	private int record = -1;
+	private Hashtable<String, Integer> columns = new Hashtable<String, Integer>();
+	private LinkedList<byte[]> backlog = new LinkedList<byte[]>();
 
 	/**
 	* Connect connects the Client to the pubsubsql server.
 	* Address string has the form host:port.
 	* 
 	*/
-	public boolean Connect(String address) {
-		Disconnect();
+	public void connect(String address) throws IOException, IllegalArgumentException  {
+		disconnect();
 		// validate address
 		int sep = address.indexOf(':');	
 		if (sep < 0) {
-			setErrorString("Invalid network address");
-			return false;
+			throw new IllegalArgumentException("Invalid network address");
 		}
 		// set host and port
 		host = address.substring(0, sep);	
 		int portIndex = sep + 1;
 		if (portIndex >= address.length()) {
-			setErrorString("Port is not provided");
-			return false;
+			throw new IllegalArgumentException("Port is not provided");
 		}	
 		int port = toPort(address.substring(portIndex));
 		if (port == 0) {
-			setErrorString("Invalid port");
-			return false;
+			throw new IllegalArgumentException("Invalid port");
 		}
-		
-		//
-		try {
-			java.net.Socket socket = new java.net.Socket();
-			socket.connect(new java.net.InetSocketAddress(host, port), CONNECTION_TIMEOUT);
-			rw.Set(socket);
-			return rw.Valid();
-		} 
-		catch (Exception e) {
-			setError(e);
-		}	
-		return false;
+		java.net.Socket socket = new java.net.Socket();
+		socket.connect(new java.net.InetSocketAddress(host, port), CONNECTION_TIMEOUT);
+		rw.set(socket);
 	}
 
 	/**
 	* Disconnect disconnects the Client from the pubsubsql server.
 	* 
 	*/
-	public void Disconnect() {
+	public void disconnect() {
 		backlog.clear();	
-		write("close");
-		// write may generate error so we reset after instead
+		try {
+			if (isConnected()) {
+				write("close");
+			}
+		} catch (Exception e) {
+
+		}
 		reset();
-		rw.Close();
+		rw.close();
 	}
 	
 	/**
 	* Connected returns true if the Client is currently connected to the pubsubsql server.
 	* 
 	*/
-	public boolean Connected() {
-		return rw.Valid();
+	public boolean isConnected() {
+		return rw.isValid();
 	}
-
 	
-	/**
-	* Ok determines if the last command executed against the pubsubsql server succeeded. 
-	* 
-	*/
-	public boolean Ok() {
-		return IsNullOrEmpty(err);
-	}
-
-			
-	/**
-	* Failed determines if the last command executed against the pubsubsql server failed. 
-	* 
-	*/
-	public boolean Failed() {
-		return !Ok();
-	}
-
-	/**
-	* Failed determines if the last command executed against the pubsubsql server failed. 
-	* 
-	*/
-	public String Error() {
-		return NotNull(err);	
-	}
-
 	/** 
 	* Error returns an error message when the last command executed against 
 	* the pubsubsql server fails.
 	* Functions that may generate an error are [Connect, Execute, NextRow, WaitForPubSub]
 	*/
-	public boolean Execute(String command) {
+	public void execute(String command) throws java.io.IOException, IllegalArgumentException, Exception {
 		reset();
-		boolean ok = write(command);
+		write(command);
 		NetHeader header = new NetHeader();
-		while (ok) {
+		for (;;) {
 			reset();
 			byte[] bytes = readTimeout(0, header);
-			if (Failed()) return false;
 			if (bytes == null) {
-				setErrorString("Timed out");
-				return false;
+				throw new TimeoutException("Read timed out");
 			}
 			if (header.RequestId == requestId) {
 				// response we are waiting for
-				return unmarshallJSON(bytes);
+				unmarshallJSON(bytes);
+				return;
 			} else if (header.RequestId == 0) {
 				//backlog
 				backlog.add(bytes);
@@ -130,17 +110,15 @@ public class Client {
 				reset();
 			} else {
 				invalidRequestIdError();
-				return false;
 			}
 		}
-		return false;
 	}
 
 	/** 
 	* JSON returns a response string in JSON format from the 
 	* last command executed against the pubsubsql server.
 	*/
-	public String JSON() {
+	public String getJSON() {
 		return NotNull(rawjson);
 	}
 
@@ -149,7 +127,7 @@ public class Client {
 	* Action returns an action string from the response 
 	* returned by the last command executed against the pubsubsql server.
 	*/
-	public String Action() {
+	public String getAction() {
 		return NotNull(response.action);
 	}
 
@@ -159,14 +137,14 @@ public class Client {
 	* PubSubId should be used by the Client to uniquely identify messages 
 	* published by the pubsubsql server.
 	*/
-	public String PubSubId() {
+	public String getPubSubId() {
 		return NotNull(response.pubsubid);
 	}
 
 	/**
 	* RowCount returns the number of rows in the result set returned by the pubsubsql server.
 	*/
-	public int RowCount() {
+	public int getRowCount() {
 		return response.rows;
 	}
 
@@ -177,8 +155,8 @@ public class Client {
 	* Returns false when all rows are read or if there is an error.
 	* To find out if false was returned because of an error, use Ok or Failed functions. 
 	*/
-	public boolean NextRow() {
-		while (Ok()) {
+	public boolean nextRow() throws java.io.IOException, IllegalArgumentException, Exception {
+		for (;;) {
 			// no result set
 			if (response.rows == 0) return false;
 			if (response.fromrow == 0 || response.torow == 0) return false;
@@ -194,25 +172,21 @@ public class Client {
 			reset();
 			NetHeader header = new NetHeader();
 			byte[] bytes = readTimeout(0, header);
-			if (Failed()) return false;
 			if (bytes == null) {
-				setErrorString("Timed out");
-				return false;
+				throw new TimeoutException("Read timed out");
 			}
 			if (header.RequestId != requestId) {
 				invalidRequestIdError();
-				return false;
 			}
 			unmarshallJSON(bytes);
 		}
-		return false;
 	}
 
 	/**
-	* Value returns the value within the current row for the given column name.
+	* getValue returns the value within the current row for the given column name.
 	* If the column name does not exist, Value returns an empty string.	
 	*/
-	public String Value(String column) {
+	public String getValue(String column) {
 		if (response.data == null) return "";
 		if (response.data.size() <= record) return "";
 		int ordinal = getColumn(column);
@@ -222,11 +196,11 @@ public class Client {
 	}
 	
 	/**
-	* ValueByOrdinal returns the value within the current row for the given column ordinal.
+	* getValue returns the value within the current row for the given column ordinal.
 	* The column ordinal represents the zero based position of the column in the Columns collection of the result set.
 	* If the column ordinal is out of range, ValueByOrdinal returns an empty string.	
 	*/
-	public String ValueByOrdinal(int ordinal) {
+	public String getValue(int ordinal) {
 		if (ordinal == -1) return "";
 		if (response.data == null) return "";
 		if (response.data.size() <= record) return "";
@@ -237,14 +211,14 @@ public class Client {
 	/**	
 	* HasColumn determines if the column name exists in the columns collection of the result set.
 	*/
-	public boolean HasColumn(String column) {
+	public boolean hasColumn(String column) {
         return getColumn(column) != -1;
 	}
 
 	/**	
 	* ColumnCount returns the number of columns in the columns collection of the result set. 
 	*/
-	public int ColumnCount() {
+	public int getColumnCount() {
 		if (response.columns == null) return 0;
 		return response.columns.size();
 	}
@@ -252,7 +226,7 @@ public class Client {
 	/**
 	*Columns returns the column names in the columns collection of the result set. 
 	*/
-	public Iterable<String> Columns() {
+	public Iterable<String> getColumns() {
 		return response.columns;
 	}
 
@@ -262,21 +236,22 @@ public class Client {
 	* Returns false when timeout interval elapses or if there is and error.
 	* To find out if false was returned because of an error, use Ok or Failed functions. 
 	*/
-	public boolean WaitForPubSub(int timeout) {
+	public boolean waitForPubSub(int timeout) throws java.io.IOException, IllegalArgumentException, Exception {
 		if (timeout <= 0) return false;		
 		reset();
 		// process backlog first
 		if (backlog.size() > 0) {
 			byte[] bytes = backlog.remove();
-			return unmarshallJSON(bytes);
+			unmarshallJSON(bytes);
+			return true;
 		}
 		for (;;) {
 			NetHeader header = new NetHeader();
 			byte[] bytes = readTimeout(timeout, header);
-			if (Failed()) return false;
 			if (bytes == null) return false; 
 			if (header.RequestId == 0) { 
-				return unmarshallJSON(bytes);			
+				unmarshallJSON(bytes);			
+				return true;
 			}
 			// this is not pubsub message; are we reading abandoned result set?
 			// ignore and continue
@@ -304,7 +279,6 @@ public class Client {
 	}
 
 	private void reset() {
-		err = "";
 		response = new ResponseData();
 		rawjson = null;
 		record = -1;
@@ -312,65 +286,43 @@ public class Client {
 
 	private void hardDisconnect() {
 		backlog.clear();
-		rw.Close();
+		rw.close();
 		reset();
 	}
 
-	private boolean write(String message) {
+	private void write(String message) throws IOException, Exception {
 		try {
-			if (!rw.Valid()) throw new Exception("Not connected");
+			if (!rw.isValid()) throw new IOException("Not connected");
 			requestId++;
-			rw.WriteWithHeader(requestId, message.getBytes(UTF8_CHARSET));
-			return true;
-
+			rw.writeWithHeader(requestId, message.getBytes(UTF8_CHARSET));
 		} 
 		catch (Exception e) {
 			hardDisconnect();
-			setError(e);
+			throw e;
 		}
-		return false;
 	}
 
-	private byte[] readTimeout(int timeout, NetHeader header) {
+	private byte[] readTimeout(int timeout, NetHeader header) throws IOException, Exception {
 		try {
-			if (!rw.Valid()) throw new Exception("Not connected");
-			return rw.ReadTimeout(timeout, header);
+			if (!rw.isValid()) throw new IOException("Not connected");
+			return rw.readTimeout(timeout, header);
 		}		
 		catch (Exception e) {
 			hardDisconnect();
-			setError(e);
+			throw e;
 		}
-		return null;
 	}
 
-	private void setErrorString(String err) {
-		reset();
-		this.err = err;
+	private void invalidRequestIdError() throws Exception, IllegalArgumentException {
+		throw new Exception("Protocol error invalid request id");	
 	}
 
-	private void setError(Exception e) {
-		String err = e.getMessage();
-		if (IsNullOrEmpty(err)) err = "Unknown error";
-		setErrorString(err);
-	}
-
-	private void invalidRequestIdError() {
-		setErrorString("Protocol error invalid request id");
-	}
-
-	private boolean unmarshallJSON(byte[] bytes) {
-		try {
-			Gson gson = new Gson();
-			rawjson = new String(bytes, UTF8_CHARSET);
-			response = gson.fromJson(rawjson, ResponseData.class);
-			if (!response.status.equals("ok")) throw new Exception(response.msg); 
-			setColumns();
-			return true;
-		}
-		catch (Exception e) {
-			setError(e);	
-		}
-		return false; 
+	private void unmarshallJSON(byte[] bytes) {
+		Gson gson = new Gson();
+		rawjson = new String(bytes, UTF8_CHARSET);
+		response = gson.fromJson(rawjson, ResponseData.class);
+		if (!response.status.equals("ok")) throw new IllegalArgumentException(response.msg); 
+		setColumns();
 	}
 
 	private void setColumns() {
@@ -389,17 +341,5 @@ public class Client {
 		return (int)ordinal;
 	}
 
-	private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
-	private int CONNECTION_TIMEOUT = 500;
-	private int requestId = 1;
-	private String host;
-	private int port;
-	private String err;
-	private NetHelper rw = new NetHelper();
-	private ResponseData response = new ResponseData();
-	private String rawjson = null;
-	private int record = -1;
-	private Hashtable<String, Integer> columns = new Hashtable<String, Integer>();
-	private LinkedList<byte[]> backlog = new LinkedList<byte[]>();
 }
 

@@ -37,21 +37,21 @@ public class NetHeader {
 		RequestId = requestId;
     }
 
-	public void ReadFrom(byte[] bytes) {
+	public void readFrom(byte[] bytes) {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
 		MessageSize = buffer.getInt(); 
 		RequestId = buffer.getInt();
 	}
 
-	public void WriteTo(byte[] bytes) {
+	public void writeTo(byte[] bytes) {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
 		buffer.putInt(MessageSize);
 		buffer.putInt(RequestId);
 	}
 
-	public byte[] GetBytes() {
+	public byte[] getBytes() {
 		byte[] bytes = new byte[HEADER_SIZE];
-		WriteTo(bytes);
+		writeTo(bytes);
 		return bytes;
 	}
 }

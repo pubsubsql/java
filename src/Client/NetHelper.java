@@ -12,15 +12,18 @@
 package pubsubsql; 
 
 class NetHelper {
-	public void Set(java.net.Socket socket) {
+	private java.net.Socket socket;
+	private byte[] headerBytes = new byte[NetHeader.HEADER_SIZE];
+
+	public void set(java.net.Socket socket) {
 		this.socket = socket;
 	}
 
-	public boolean Valid() {
+	public boolean isValid() {
 		return this.socket != null && this.socket.isConnected();            
 	}	
 
-	public void Close() {
+	public void close() {
 		if (socket == null) return;
         try {
 			socket.shutdownOutput();
@@ -32,18 +35,18 @@ class NetHelper {
 		}
 	}
 
-	public void WriteWithHeader(int requestId, byte[] bytes) throws java.io.IOException {
+	public void writeWithHeader(int requestId, byte[] bytes) throws java.io.IOException {
 		NetHeader header = new NetHeader(bytes.length, requestId);
 		java.io.OutputStream stream = socket.getOutputStream();
-		stream.write(header.GetBytes());
+		stream.write(header.getBytes());
 		stream.write(bytes);
 		stream.flush();
 	}
 	
-	public byte[] ReadTimeout(int timeout, NetHeader header) throws java.io.IOException, Exception {
+	public byte[] readTimeout(int timeout, NetHeader header) throws java.io.IOException, Exception {
 		try {
 			socket.setSoTimeout(timeout);
-			return Read(header);			
+			return read(header);			
 		} 
 		catch (java.net.SocketTimeoutException te) {
 			// ignore we timed out	
@@ -51,11 +54,11 @@ class NetHelper {
 		return null;
 	}
 
-	public byte[] Read(NetHeader header) throws java.io.IOException, Exception {
+	public byte[] read(NetHeader header) throws java.io.IOException, Exception {
 		java.io.InputStream stream = socket.getInputStream();
 		int read = stream.read(headerBytes);
 		if (read < NetHeader.HEADER_SIZE) throw new Exception("Failed to read header");
-		header.ReadFrom(headerBytes);	
+		header.readFrom(headerBytes);	
 		byte[] bytes = new byte[header.MessageSize];
 		read = 0;
 		while (header.MessageSize > read) {
@@ -63,8 +66,5 @@ class NetHelper {
 		}
 		return bytes;
 	}
-
-	private java.net.Socket socket;
-	private byte[] headerBytes = new byte[NetHeader.HEADER_SIZE];
 }
 

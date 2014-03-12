@@ -19,10 +19,17 @@ MAKE SURE TO RUN PUBSUBSQL SERVER!
 */
 
 public class ClientTest {
+	private int failCount = 0;
+	private String currentFunction = "";
+	private static final String ADDRESS = "localhost:7777";
+	private String TABLE = "T" + System.currentTimeMillis();
+	private int ROWS = 3;
+	private int COLUMNS = 4; // including id
+
 	public static void main(String[] args) {
 		ClientTest test = new ClientTest();
-		test.TestNetHeader();		
-		test.TestClient();
+		test.testNetHeader();		
+		test.testClient();
 		if (test.failCount > 0) {
 			System.out.println("Failed " + test.failCount + " tests.");
 		} else {
@@ -31,61 +38,61 @@ public class ClientTest {
 	}	
 
 	// NetHeader
-	private void TestNetHeader() {
-		TestWriteRead();	
-		TestGetBytes();
+	private void testNetHeader() {
+		testWriteRead();	
+		testGetBytes();
 	}	
 
-	private void TestWriteRead() {
-		register("TestWriteRead");
+	private void testWriteRead() {
+		register("testWriteRead");
 		pubsubsql.NetHeader header1 = new pubsubsql.NetHeader(32567, 9875235);
 		pubsubsql.NetHeader header2 = new pubsubsql.NetHeader(0, 0);
 		byte[] bytes = new byte[100];
-		header1.WriteTo(bytes);
-		header2.ReadFrom(bytes);
+		header1.writeTo(bytes);
+		header2.readFrom(bytes);
 		ASSERT_TRUE(header1.MessageSize == header2.MessageSize, "MessageSize do not match");
 		ASSERT_TRUE(header1.RequestId == header2.RequestId, "RequestId do not match");
 	}
 
-	private void TestGetBytes() {
-		register("TestGetBytes");
+	private void testGetBytes() {
+		register("testGetBytes");
 		pubsubsql.NetHeader header1 = new pubsubsql.NetHeader(32567, 9875235);
 		pubsubsql.NetHeader header2 = new pubsubsql.NetHeader(0, 0);
-		byte[] bytes = header1.GetBytes();
-		header2.ReadFrom(bytes);
+		byte[] bytes = header1.getBytes();
+		header2.readFrom(bytes);
 		ASSERT_TRUE(header1.MessageSize == header2.MessageSize, "MessageSize do not match");
 		ASSERT_TRUE(header1.RequestId == header2.RequestId, "RequestId do not match");
 	}
 
 	// Client
-	private void TestClient() {
+	private void testClient() {
 		System.out.println("testing client...");
-		TestConnectDisconnect();						
-		TestExecuteStatus();
-		TestExecuteInvalidCommand();
-		TestInsertOneRow();
-		TestInsertManyRows();
-		TestSelectOneRow();
-		TestSelectManyRows();
-		TestUpdateOneRow();
-		TestUpdateManyRows();
-		TestDeleteOneRow();
-		TestDeleteManyRows();
-		TestKey();
-		TestTag();
-		TestSubscribeUnsubscribe();
-		TestSubscribeUnsubscribeByPubSubId();
-		TestPubSubTimeout();
-		TestSubscribeSkip();
-		TestPubSubAddOnSubscribe();
-		TestPubSubInsert();
-		TestPubSubUpdate();
-		TestPubSubDelete();
-		TestPubSubRemove();
+		testConnectDisconnect();						
+		testExecuteStatus();
+		testExecuteInvalidCommand();
+		testInsertOneRow();
+		testInsertManyRows();
+		testSelectOneRow();
+		testSelectManyRows();
+		testUpdateOneRow();
+		testUpdateManyRows();
+		testDeleteOneRow();
+		testDeleteManyRows();
+		testKey();
+		testTag();
+		testSubscribeUnsubscribe();
+		testSubscribeUnsubscribeByPubSubId();
+		testPubSubTimeout();
+		testSubscribeSkip();
+		testPubSubAddOnSubscribe();
+		testPubSubInsert();
+		testPubSubUpdate();
+		testPubSubDelete();
+		testPubSubRemove();
 	}
 
-	private void TestConnectDisconnect() {
-		register("TestConnectDisconnect");
+	private void testConnectDisconnect() {
+		register("testConnectDisconnect");
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_CONNECTED(client, true);
@@ -101,8 +108,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);	
 	}
 
-	private void TestExecuteStatus() {
-		register("TestExecute");
+	private void testExecuteStatus() {
+		register("testExecute");
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_EXECUTE(client, "status", true);
@@ -110,19 +117,19 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);	
 	}
 
-	private void TestExecuteInvalidCommand() {
-		register("TestExecuteInvalidCommand");
+	private void testExecuteInvalidCommand() {
+		register("testExecuteInvalidCommand");
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_EXECUTE(client, "blablabla", false);
 	}
 
-	private void TestInsertOneRow() {
-		register("TestInsertOneRow");
+	private void testInsertOneRow() {
+		register("testInsertOneRow");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
-		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3)", TABLE);
+		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3) returning *", TABLE);
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_ACTION(client, "insert");
 		ASSERT_ROW_COUNT(client, 1);
@@ -139,12 +146,12 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestInsertManyRows() {
-		register("TestInsertManyRows");
+	private void testInsertManyRows() {
+		register("testInsertManyRows");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
-		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3)", TABLE);
+		String command = String.format("insert into %s (col1, col2, col3) values (1:col1, 1:col2, 1:col3) returning *", TABLE);
 		for (int r = 0; r < ROWS; r++) {
 			ASSERT_EXECUTE(client, command, true);
 			ASSERT_ACTION(client, "insert");
@@ -165,8 +172,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 	
-	private void TestSelectOneRow() {
-		register("TestSelectOneRow");
+	private void testSelectOneRow() {
+		register("testSelectOneRow");
 		newtable();
 		insertRow();
 		Client client = new Client();
@@ -191,8 +198,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestSelectManyRows() {
-		register("TestSelectRow");
+	private void testSelectManyRows() {
+		register("testSelectRow");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -217,8 +224,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestUpdateOneRow() {
-		register("TestUpdateOneRow");
+	private void testUpdateOneRow() {
+		register("testUpdateOneRow");
 		newtable();
 		insertRow();
 		Client client = new Client();
@@ -230,8 +237,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestUpdateManyRows() {
-		register("TestUpdateManyRow");
+	private void testUpdateManyRows() {
+		register("testUpdateManyRow");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -243,8 +250,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestDeleteOneRow() {
-		register("TestDeleteOneRow");
+	private void testDeleteOneRow() {
+		register("testDeleteOneRow");
 		newtable();
 		insertRow();
 		Client client = new Client();
@@ -256,8 +263,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestDeleteManyRows() {
-		register("TestDeleteManyRow");
+	private void testDeleteManyRows() {
+		register("testDeleteManyRow");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -269,8 +276,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestKey() {
-		register("TestKey");
+	private void testKey() {
+		register("testKey");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -281,8 +288,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestTag() {
-		register("TestTag");
+	private void testTag() {
+		register("testTag");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -293,8 +300,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestSubscribeUnsubscribe() {
-		register("TestSubscribeUnsubscribe");
+	private void testSubscribeUnsubscribe() {
+		register("testSubscribeUnsubscribe");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
@@ -311,8 +318,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestSubscribeUnsubscribeByPubSubId() {
-		register("TestSubscribeUnsubscribeByPubSubId");
+	private void testSubscribeUnsubscribeByPubSubId() {
+		register("testSubscribeUnsubscribeByPubSubId");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
@@ -322,23 +329,23 @@ public class ClientTest {
 		ASSERT_ACTION(client, "subscribe");
 		ASSERT_PUBSUBID(client);
 		// unsubscribe
-		command = String.format("unsubscribe from %s where pubsubid = %s", TABLE, client.PubSubId());		
+		command = String.format("unsubscribe from %s where pubsubid = %s", TABLE, client.getPubSubId());		
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_ACTION(client, "unsubscribe");
 		//
 		ASSERT_DISCONNECT(client);
 	} 
 
-	private void TestPubSubTimeout() {
-		register("TestPubSubTimeout");
+	private void testPubSubTimeout() {
+		register("testPubSubTimeout");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
 		ASSERT_WAIT_FOR_PUBSUB(client, 10, false);	
 	}
 
-	private void TestSubscribeSkip() {
-		register("TestSubscribeSkip");
+	private void testSubscribeSkip() {
+		register("testSubscribeSkip");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -352,8 +359,8 @@ public class ClientTest {
 	}
 
 
-	private void TestPubSubAddOnSubscribe() {
-		register("TestPubSubAddOnSubscribe");
+	private void testPubSubAddOnSubscribe() {
+		register("testPubSubAddOnSubscribe");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -364,13 +371,13 @@ public class ClientTest {
 		ASSERT_ACTION(client, "subscribe");
 		ASSERT_PUBSUBID(client);
 		// pubsub add
-		String pubsubid = client.PubSubId();
+		String pubsubid = client.getPubSubId();
 		ASSERT_PUBSUB_RESULT_SET(client, pubsubid, "add", ROWS, COLUMNS);
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestPubSubInsert() {
-		register("TestPubSubInsert");
+	private void testPubSubInsert() {
+		register("testPubSubInsert");
 		newtable();
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
@@ -382,12 +389,12 @@ public class ClientTest {
 		// generate insert event
 		insertRows();
 		// pubsub insert
-		ASSERT_PUBSUB_RESULT_SET(client, client.PubSubId(), "insert", ROWS, COLUMNS);
+		ASSERT_PUBSUB_RESULT_SET(client, client.getPubSubId(), "insert", ROWS, COLUMNS);
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestPubSubUpdate() {
-		register("TestPubSubUpdate");
+	private void testPubSubUpdate() {
+		register("testPubSubUpdate");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -397,7 +404,7 @@ public class ClientTest {
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_ACTION(client, "subscribe");
 		ASSERT_PUBSUBID(client);
-		String pubsubid = client.PubSubId();
+		String pubsubid = client.getPubSubId();
 		// generate update event
 		command = String.format("update %s set col1 = newvalue", TABLE);	
 		ASSERT_EXECUTE(client, command, true);
@@ -407,8 +414,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestPubSubDelete() {
-		register("TestPubSubDelete");
+	private void testPubSubDelete() {
+		register("testPubSubDelete");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -418,7 +425,7 @@ public class ClientTest {
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_ACTION(client, "subscribe");
 		ASSERT_PUBSUBID(client);
-		String pubsubid = client.PubSubId();
+		String pubsubid = client.getPubSubId();
 		// generate update event
 		command = String.format("delete from %s", TABLE);	
 		ASSERT_EXECUTE(client, command, true);
@@ -428,8 +435,8 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
-	private void TestPubSubRemove() {
-		register("TestPubSubRemove");
+	private void testPubSubRemove() {
+		register("testPubSubRemove");
 		newtable();
 		insertRows();
 		Client client = new Client();
@@ -439,7 +446,7 @@ public class ClientTest {
 		ASSERT_EXECUTE(client, command, true);
 		command = String.format("subscribe skip * from %s where col1 = 1:col1", TABLE);
 		ASSERT_EXECUTE(client, command, true);
-		String pubsubid = client.PubSubId();
+		String pubsubid = client.getPubSubId();
 		// generate remove
 		command = String.format("update %s set col1 = newvalue where col1 = 1:col1", TABLE);	
 		ASSERT_EXECUTE(client, command, true);
@@ -464,12 +471,6 @@ public class ClientTest {
 
 	private void print(String message) {
 		System.out.println(message);
-	}
-
-	private void iferror(Client client, boolean expected, boolean got) {
-		if (expected && !got) {
-			print(String.format("Error: %s", client.Error()));
-		}	
 	}
 
 	private void register(String function) {
@@ -523,87 +524,94 @@ public class ClientTest {
 		}
 	}
 
-	public void VALIDATE_RESULT(Client client, boolean result) {
-		if (result && !client.Ok() ) fail("VALIDATE_RESULT failed: expected Ok");
-		if (!result && !client.Failed() ) fail("VALIDATE_RESULT failed: expected Failed");
-	}
-
 	public void ASSERT_CONNECT(Client client, String address, boolean expected) {
-		boolean got = client.Connect(address);
+		boolean got = true;
+		try {
+			client.connect(address);
+		} catch (Exception e) {
+			got = false;
+		}
 		if (expected != got) {
 			fail(String.format("ASSERT_CONNECT failed: expected %s got %s ", expected, got));
 		}	
-		iferror(client, expected, got);
-		VALIDATE_RESULT(client, got);
 	}
 
 	public void ASSERT_DISCONNECT(Client client) {
-		client.Disconnect();
-		if (client.Failed()) {
-			fail("ASSERT_DISCONNECT failed: expected Ok() not Failed() after Disconnect()");
-		}
+		client.disconnect();
 	}
 
 	public void ASSERT_CONNECTED(Client client, boolean expected) {
-		boolean got = client.Connected();
+		boolean got = false;
+		try {
+			got = client.isConnected();
+		} catch (Exception e) {
+		}
 		if (expected != got) {
 			fail(String.format("ASSERT_CONNECTED failed: expected %s got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_EXECUTE(Client client, String command, boolean expected) {
-		boolean got = client.Execute(command);
+		boolean got = true; 
+		try {
+			client.execute(command);
+		} catch (Exception e) {
+			got = false;
+		}
 		if (expected != got) {
 			fail(String.format("ASSERT_EXECUTE failed: expected %s got %s", expected, got));	
 		}
-		iferror(client, expected, got);
-		VALIDATE_RESULT(client, got);
 	}
 
 	public void ASSERT_ACTION(Client client, String expected) {
-		String got = client.Action();
+		String got = client.getAction();
 		if (!expected.equals(got)) {
 			fail(String.format("ASSERT_ACTION failed: expected %s got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_ROW_COUNT(Client client, int expected) {
-		int got = client.RowCount();
+		int got = client.getRowCount();
 		if (expected != got) {
 			fail(String.format("ASSERT_ROW_COUNT failed: expected %s but got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_NEXT_ROW(Client client, boolean expected) {
-		boolean got = client.NextRow();
+		boolean got = false;
+		try {
+			got = client.nextRow();
+		} catch (Exception e) {
+
+		}
 		if (expected != got) {
 			fail(String.format("ASSERT_NEXT_ROW failed: expected %s but got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_ID(Client client) {
-		String id = client.Value("id");
+		String id = client.getValue("id");
 		if (id.length() == 0) {
 			fail("ASSERT_ID failed: expected non empty string");
 		}
 	}
 
 	public void ASSERT_PUBSUBID(Client client) {
-		String pubsubid = client.PubSubId();	
+		String pubsubid = client.getPubSubId();	
 		if (pubsubid.length() == 0) {
 			fail("ASSERT_PUBSUBID failed: expected non empty string");
 		}	
 	}
 
 	public void ASSERT_PUBSUBID_VALUE(Client client, String expected) {
-		String got = client.PubSubId(); 		
+		String got = client.getPubSubId(); 		
 		if (!expected.equals(got)) {
 			fail(String.format("ASSERT_PUBSUBID_VALUE failed: expected %s but got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_VALUE(Client client, String column, String value, boolean match) {
-		String got = client.Value(column);	
+		String got = client.getValue(column);	
 		if (match && !value.equals(got)) {
 			fail(String.format("ASSERT_VALUE failed: expected %s but got %s", value, got));
 		}
@@ -613,31 +621,33 @@ public class ClientTest {
 	}
 
 	public void ASSERT_COLUMN_COUNT(Client client, int expected) {
-		int got = client.ColumnCount();
+		int got = client.getColumnCount();
 		if (expected != got) {
 			fail(String.format("ASSERT_COLUMN_COUNT failed: expected %s but got %s", expected, got));
 		}
 	}
 
 	public void ASSERT_HAS_COLUMN(Client client, String column, boolean expected) {
-		boolean got = client.HasColumn(column);
+		boolean got = client.hasColumn(column);
 		if (expected != got) {
 			fail(String.format("ASSERT_HAS_COLUMN failed: expected %s but got %s", expected, got));
 		}
 	}	
 
 	public void ASSERT_WAIT_FOR_PUBSUB(Client client, int timeout, boolean expected) {
-		boolean got = client.WaitForPubSub(timeout);
-		if (client.Failed()) {
-			fail(String.format("ASSERT_WAIT_FOR_PUBSUB failed: %s", client.Error()));
+		boolean got = false;
+		try {
+			got = client.waitForPubSub(timeout);
+		} catch (Exception e) {
+
 		}
-		else if (expected != got) {
+		if (expected != got) {
 			fail(String.format("ASSERT_WAIT_FOR_PUBSUB failed: expected %s but got %s", expected, got));
 		}	
 	}
 
 	public void ASSERT_NON_EMPTY_VALUE(Client client, int ordinal) {
-		if (client.ValueByOrdinal(ordinal).length() == 0) {
+		if (client.getValue(ordinal).length() == 0) {
 			fail(String.format("ASSERT_NON_EMPTY_VALUE failed: expected non empty string for ordinal %s", ordinal));
 		}
 	}
@@ -655,29 +665,27 @@ public class ClientTest {
 	} 
 
 	public void ASSERT_PUBSUB_RESULT_SET(Client client, String pubsubid, String action, int rows, int columns) {
-		int readRows = 0;		
-		while (readRows < rows) {
-			if (!client.WaitForPubSub(100)) {
-				fail(String.format("ASSERT_PUBSUB_RESULT_SET failed expected %s rows but got %s", rows, readRows));
-				return;
+		try {
+			int readRows = 0;		
+			while (readRows < rows) {
+				if (!client.waitForPubSub(100)) {
+					fail(String.format("ASSERT_PUBSUB_RESULT_SET failed expected %s rows but got %s", rows, readRows));
+					return;
+				}
+				ASSERT_PUBSUBID_VALUE(client, pubsubid);
+				ASSERT_ACTION(client, action);
+				while (client.nextRow()) {
+					readRows++;
+					ASSERT_COLUMN_COUNT(client, columns); 
+					for (int col = 0; col < columns; col++) {
+						ASSERT_NON_EMPTY_VALUE(client, col);
+					} 
+				}
 			}
-			ASSERT_PUBSUBID_VALUE(client, pubsubid);
-			ASSERT_ACTION(client, action);
-			while (client.NextRow()) {
-				readRows++;
-				ASSERT_COLUMN_COUNT(client, columns); 
-				for (int col = 0; col < columns; col++) {
-					ASSERT_NON_EMPTY_VALUE(client, col);
-				} 
-			}
+		} catch (Exception e) {
+			fail(String.format(e.getMessage()));
 		}
 	}
 
-	private int failCount = 0;
-	private String currentFunction = "";
-	private static final String ADDRESS = "localhost:7777";
-	private String TABLE = "T" + System.currentTimeMillis();
-	private int ROWS = 300;
-	private int COLUMNS = 4; // including id
 }
 

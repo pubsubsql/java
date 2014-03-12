@@ -83,11 +83,6 @@ public class Client {
 		return rw.isValid();
 	}
 	
-	/** 
-	* Error returns an error message when the last command executed against 
-	* the pubsubsql server fails.
-	* Functions that may generate an error are [Connect, Execute, NextRow, WaitForPubSub]
-	*/
 	public void execute(String command) throws java.io.IOException, IllegalArgumentException, Exception {
 		reset();
 		write(command);
@@ -112,6 +107,12 @@ public class Client {
 				invalidRequestIdError();
 			}
 		}
+	}
+
+	public void stream(String command) throws java.io.IOException, IllegalArgumentException, Exception {
+		reset();
+		//TODO optimize
+		write("stream " + command);
 	}
 
 	/** 

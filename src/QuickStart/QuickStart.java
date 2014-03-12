@@ -16,13 +16,15 @@ import java.util.*;
 
 public class QuickStart {
 
-	static void checkError(pubsubsql.Client client, String str) {
-		if (client.Failed()) {
-			System.out.println(String.format("Error: %s %s", client.Error(), str));
+	public static void main(String[] args) {
+		try {
+			quickStart();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());	
 		}
 	}
 
-	public static void main(String[] args) {
+	private static void quickStart() throws Exception {
 		pubsubsql.Client client = new pubsubsql.Client();
 		pubsubsql.Client subscriber = new pubsubsql.Client();
 
@@ -31,10 +33,8 @@ public class QuickStart {
 		//----------------------------------------------------------------------------------------------------
 
 		String address = "localhost:7777";
-		client.Connect(address);
-		checkError(client, "client connect failed");
-		subscriber.Connect(address);
-		checkError(client, "subscriber connect failed");
+		client.connect(address);
+		subscriber.connect(address);
 
 		//----------------------------------------------------------------------------------------------------
 		// SQL MUST-KNOW RULES
@@ -62,123 +62,110 @@ public class QuickStart {
 		// INDEX
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("key Stocks Ticker");
-		client.Execute("tag Stocks MarketCap");
+		try {
+			client.execute("key Stocks Ticker");
+			client.execute("tag Stocks MarketCap");
+		} catch (IllegalArgumentException e) {
+			// key or tag may have already been defined, so its ok
+		}
 
 		//----------------------------------------------------------------------------------------------------
 		// SUBSCRIBE
 		//----------------------------------------------------------------------------------------------------
 
-		subscriber.Execute("subscribe * from Stocks where MarketCap = 'MEGA CAP'");
-		String pubsubid = subscriber.PubSubId();
+		subscriber.execute("subscribe * from Stocks where MarketCap = 'MEGA CAP'");
+		String pubsubid = subscriber.getPubSubId();
 		System.out.println("subscribed to Stocks pubsubid: " + pubsubid);
-		checkError(subscriber, "subscribe failed");
 
 		//----------------------------------------------------------------------------------------------------
 		// PUBLISH INSERT
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("insert into Stocks (Ticker, Price, MarketCap) values (GOOG, '1,200.22', 'MEGA CAP')");
-		checkError(client, "insert GOOG failed");
-		client.Execute("insert into Stocks (Ticker, Price, MarketCap) values (MSFT, 38,'MEGA CAP')");
-		checkError(client, "insert MSFT failed");
+		client.execute("insert into Stocks (Ticker, Price, MarketCap) values (GOOG, '1,200.22', 'MEGA CAP')");
+		client.execute("insert into Stocks (Ticker, Price, MarketCap) values (MSFT, 38,'MEGA CAP')");
 
 		//----------------------------------------------------------------------------------------------------
 		// SELECT
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("select id, Ticker from Stocks");
-		checkError(client, "select failed");
-		while (client.NextRow()) {
+		client.execute("select id, Ticker from Stocks");
+		while (client.nextRow()) {
 			System.out.println("*********************************");
-			System.out.println(String.format("id:%s Ticker:%s \n", client.Value("id"), client.Value("Ticker")));
+			System.out.println(String.format("id:%s Ticker:%s \n", client.getValue("id"), client.getValue("Ticker")));
 		}
-		checkError(client, "NextRow failed");
 
 		//----------------------------------------------------------------------------------------------------
 		// PROCESS PUBLISHED INSERT
 		//----------------------------------------------------------------------------------------------------
 
 		int timeout = 100;
-		while (subscriber.WaitForPubSub(timeout)) {
+		while (subscriber.waitForPubSub(timeout)) {
 			System.out.println("*********************************");
-			System.out.println("Action:" + subscriber.Action());
-			while (subscriber.NextRow()) {
-				System.out.println("New MEGA CAP stock:" + subscriber.Value("Ticker"));
-				System.out.println("Price:" + subscriber.Value("Price"));
+			System.out.println("Action:" + subscriber.getAction());
+			while (subscriber.nextRow()) {
+				System.out.println("New MEGA CAP stock:" + subscriber.getValue("Ticker"));
+				System.out.println("Price:" + subscriber.getValue("Price"));
 			}
-			checkError(subscriber, "NextRow failed");
 		}
-		checkError(subscriber, "WaitForPubSub failed");
 
 		//----------------------------------------------------------------------------------------------------
 		// PUBLISH UPDATE
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("update Stocks set Price = '1,500.00' where Ticker = GOOG");
-		checkError(client, "update GOOG failed");
+		client.execute("update Stocks set Price = '1,500.00' where Ticker = GOOG");
 
 		//----------------------------------------------------------------------------------------------------
 		// SERVER WILL NOT PUBLISH INSERT BECAUSE WE ONLY SUBSCRIBED TO 'MEGA CAP'
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("insert into Stocks (Ticker, Price, MarketCap) values (IBM, 168, 'LARGE CAP')");
-		checkError(client, "insert IBM failed");
+		client.execute("insert into Stocks (Ticker, Price, MarketCap) values (IBM, 168, 'LARGE CAP')");
 
 		//----------------------------------------------------------------------------------------------------
 		// PUBLISH ADD
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("update Stocks set Price = 230.45, MarketCap = 'MEGA CAP' where Ticker = IBM");
-		checkError(client, "update IBM to MEGA CAP failed");
+		client.execute("update Stocks set Price = 230.45, MarketCap = 'MEGA CAP' where Ticker = IBM");
 
 		//----------------------------------------------------------------------------------------------------
 		// PUBLISH REMOVE
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("update Stocks set Price = 170, MarketCap = 'LARGE CAP' where Ticker = IBM");
-		checkError(client, "update IBM to LARGE CAP failed");
+		client.execute("update Stocks set Price = 170, MarketCap = 'LARGE CAP' where Ticker = IBM");
 
 		//----------------------------------------------------------------------------------------------------
 		// PUBLISH DELETE
 		//----------------------------------------------------------------------------------------------------
 
-		client.Execute("delete from Stocks");
-		checkError(client, "delete failed");
+		client.execute("delete from Stocks");
 
 		//----------------------------------------------------------------------------------------------------
 		// PROCESS ALL PUBLISHED
 		//----------------------------------------------------------------------------------------------------
 
-		while (subscriber.WaitForPubSub(timeout)) {
+		while (subscriber.waitForPubSub(timeout)) {
 			System.out.println("*********************************");
-			System.out.println("Action:" + subscriber.Action());
-			while (subscriber.NextRow()) {
+			System.out.println("Action:" + subscriber.getAction());
+			while (subscriber.nextRow()) {
 				int ordinal = 0;
-				for (String column : subscriber.Columns()) {
-					System.out.print(String.format("%s:%s ", column, subscriber.ValueByOrdinal(ordinal)));
+				for (String column : subscriber.getColumns()) {
+					System.out.print(String.format("%s:%s ", column, subscriber.getValue(ordinal)));
 					ordinal++;
 				}
 				System.out.println(); 
 			}
-			checkError(subscriber, "NextRow failed");
 		}
-		checkError(subscriber, "WaitForPubSub failed");
 
 		//----------------------------------------------------------------------------------------------------
 		// UNSUBSCRIBE
 		//----------------------------------------------------------------------------------------------------
 
-		subscriber.Execute("unsubscribe from Stocks");
-		checkError(subscriber, "NextRow failed");
+		subscriber.execute("unsubscribe from Stocks");
 
 		//----------------------------------------------------------------------------------------------------
 		// DISCONNECT
 		//----------------------------------------------------------------------------------------------------
 
-		client.Disconnect();
-		subscriber.Disconnect();
-	
+		client.disconnect();
 	}
 }
 

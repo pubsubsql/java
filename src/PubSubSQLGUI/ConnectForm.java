@@ -14,6 +14,9 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class ConnectForm extends JDialog {
+	private boolean ok = false;
+	private ConnectPanel panel;
+
 	public ConnectForm(JFrame owner) {
 		super(owner, "Connect", true);		
 		ConnectPanel panel = new ConnectPanel();
@@ -51,8 +54,5 @@ public class ConnectForm extends JDialog {
 	public boolean Ok() {
 		return ok;
 	}
-
-	private boolean ok = false;
-	private ConnectPanel panel;
 }
 

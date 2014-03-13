@@ -14,6 +14,9 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class SimulatorForm extends JDialog {
+	private SimulatorPanel panel;
+	private boolean ok = false;
+
 	public SimulatorForm(JFrame owner) {
 		super(owner, "Simulator", true);		
 		panel = new SimulatorPanel();
@@ -49,8 +52,5 @@ public class SimulatorForm extends JDialog {
 	public boolean Ok() {
 		return ok;
 	}
-
-	private SimulatorPanel panel;
-	private boolean ok = false;
 }
 

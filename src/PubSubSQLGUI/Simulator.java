@@ -19,18 +19,23 @@ public class Simulator implements Runnable {
 	public int Rows = 0;
 	public String TableName = "";
 	public String Address = "";
+	private pubsubsql.Client client = new pubsubsql.Client();
+	private volatile boolean stopFlag = false;
+	private Thread thread;
+	private ArrayList<String> ids = new ArrayList<String>();
+	private Random rnd = new Random();
 
 	public void run() {
 		try {
 			rnd.setSeed(System.nanoTime());
 			ids.clear();	
-			if (!client.Connect(Address)) throw new Exception("Failed to connect");
+			client.connect(Address);
 			// first insert data
 			for (int row = 1; row <= Rows && !stopFlag; row++) {
 				String insert = generateInsert(row);
-				if (!client.Execute(insert)) throw new Exception("Failed to insert: " + insert);
-				if (!client.NextRow()) throw new Exception("Failed to move to the first row");
-				String id = client.Value("id");
+				client.execute(insert);
+				client.nextRow();
+				String id = client.getValue("id");
 				if (id.length() == 0) throw new Exception("id is empty");
 				ids.add(id);
 			}
@@ -38,13 +43,13 @@ public class Simulator implements Runnable {
 			while (!stopFlag) {
 				for (int i = 0; i < 100 && !stopFlag; i++) {
 					String update = generateUpdate();
-					if (!client.Execute(update)) throw new Exception(client.Error());
+					client.stream(update);
 				}
 				// gui thread can not process too many messages from the server
 				// slow downs the updates
 				Thread.sleep(100);
 			}
-			client.Disconnect();
+			client.disconnect();
 		}		
 		catch (Exception e) {
 			final String error = e.getMessage();
@@ -55,11 +60,11 @@ public class Simulator implements Runnable {
 			});	
 		}
 		finally {
-			client.Disconnect();
+			client.disconnect();
 		}
 	}
 
-	public void Reset() {
+	public void reset() {
 		Columns = 0;
 		Rows = 0;
 		TableName = "";
@@ -67,14 +72,14 @@ public class Simulator implements Runnable {
 		thread = null;
 	}
 
-	public void Start() {
-		Stop();		
+	public void start() {
+		stop();		
 		stopFlag = false;
 		thread = new Thread(this); 
 		thread.start();
 	}
 
-	public void Stop() {
+	public void stop() {
 		stopFlag = true;	
 		if (thread != null) {
 			try {
@@ -113,14 +118,8 @@ public class Simulator implements Runnable {
 			else builder.append(" , ");
 			builder.append(row);
 		}
-		builder.append(")");
+		builder.append(") returning id");
 		return builder.toString();
 	}
-
-	private pubsubsql.Client client = new pubsubsql.Client();
-	private volatile boolean stopFlag = false;
-	private Thread thread;
-	private ArrayList<String> ids = new ArrayList<String>();
-	private Random rnd = new Random();
 }
 

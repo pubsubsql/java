@@ -14,8 +14,32 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class MainForm extends JFrame implements ActionListener {
-	// forward reference
 	private final String DEFAULT_ADDRESS = "localhost:7777";
+	private JMenuItem connectLocalMenu;
+	private JButton connectLocalButton;
+	private JMenuItem connectMenu;
+	private JButton connectButton;
+	private JMenuItem disconnectMenu;
+	private JButton disconnectButton;
+	private JMenuItem executeMenu;
+	private JButton executeButton;
+	private JMenuItem cancelMenu;
+	private JButton cancelButton;
+	private JMenuItem simulateMenu;
+	private JTextArea queryText;
+	private JTabbedPane resultsTabContainer;
+	private JTextArea statusText;
+	private JTextArea jsonText;
+	private pubsubsql.Client client = new pubsubsql.Client();
+	private String connectedAddress = "";
+	private boolean cancelExecuteFlag = false;
+	private TableDataset dataset = new TableDataset();
+	private int FLASH_TIMER_INTERVAL = 150;	
+	private int PUBSUB_TIMEOUT = 5;
+	private TableView tableView = new TableView(FLASH_TIMER_INTERVAL * 2000000, dataset); 
+	private Timer timer;	
+	private Simulator simulator = new Simulator();
+	private AboutForm aboutForm;
 
 	public MainForm() {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -113,13 +137,13 @@ public class MainForm extends JFrame implements ActionListener {
 	// timer event
 	long flashTicks = System.nanoTime();
 	public void actionPerformed(ActionEvent e) {
-		if (dataset.ResetDirtyData()) {
-			setStatus();
+		if (dataset.resetDirtyData()) {
+			setStatusOk();
 			setJSON();
-			tableView.Update();
+			tableView.update();
 			flashTicks = System.nanoTime();
 		} else if (System.nanoTime() - flashTicks < tableView.FLASH_TIMEOUT * 2) {
-			tableView.Update();
+			tableView.update();
 		}
 	}
 
@@ -157,19 +181,22 @@ public class MainForm extends JFrame implements ActionListener {
 
 	private void connect(String address) {
 		clearResults();
-		if (client.Connect(address)) {
+		try {
+			client.connect(address);
 			updateConnectedAddress(address);	
+			setStatusOk();
+		} catch (Exception e) {
+			setStatusError(e.getMessage());
 		}
-		setStatus();
 		enableDisableControls();
 	}
 
 	Action disconnect = new AbstractAction("Disconnect", createImageIcon("images/Disconnect.png")) {
 		public void actionPerformed(ActionEvent event) {
-			simulator.Stop();
+			simulator.stop();
 			cancelExecuteFlag = true;
 			updateConnectedAddress("");
-			client.Disconnect();
+			client.disconnect();
 			enableDisableControls();
 			clearResults();
 		}
@@ -179,10 +206,15 @@ public class MainForm extends JFrame implements ActionListener {
 		executing();
 		String command = queryText.getText().trim();
 		if (command.length() == 0) return;
-		client.Execute(command);
+		try {
+			client.execute(command);
+
+		} catch (Exception e) {
+			setStatusError(e.getMessage());
+		}
 		// determine if we just subscribed  
-		if (client.PubSubId().length() > 0 && client.Action().equals("subscribe")) {
-			setStatus();
+		if (client.getPubSubId().length() > 0 && client.getAction().equals("subscribe")) {
+			setStatusOk();
 			setJSON();
 			// enter event loop
 			waitForPubSubEvent();
@@ -200,14 +232,14 @@ public class MainForm extends JFrame implements ActionListener {
 
 	Action cancelExecute = new AbstractAction("Cancel Executing Query", createImageIcon("images/Stop.png")) {
 		public void actionPerformed(ActionEvent event) {
-			simulator.Stop();
+			simulator.stop();
 			cancelExecuteFlag = true;
 		}
 	};
 
 	Action simulate = new AbstractAction("Simulate") {
 		public void actionPerformed(ActionEvent event) {
-			simulator.Stop();		
+			simulator.stop();		
 			simulator.Address = connectedAddress;
 			SimulatorForm simulatorForm = new SimulatorForm(MainForm.this);	
 			simulatorForm.setLocationRelativeTo(MainForm.this);
@@ -219,7 +251,7 @@ public class MainForm extends JFrame implements ActionListener {
 			simulator.Columns = simulatorForm.getColumns();
 			simulator.Rows = simulatorForm.getRows();	
 			simulator.TableName = "T" + System.currentTimeMillis();	
-			simulator.Start();
+			simulator.start();
 			queryText.setText("subscribe * from " + simulator.TableName);
 			executeCommand();
 			//
@@ -245,7 +277,7 @@ public class MainForm extends JFrame implements ActionListener {
 	}
 
 	private void clearResults() {
-		dataset.Clear();
+		dataset.clear();
 		statusText.setText("");	
 		jsonText.setText("");	
 	}
@@ -255,23 +287,23 @@ public class MainForm extends JFrame implements ActionListener {
 		connectedAddress = address;
 	}
 
-	private void setStatus() {
-		if (client.Ok()) {
-			statusText.setForeground(Color.black);
-			statusText.setText("ok");
-			return;
-		}
+	private void setStatusOk() {
+		statusText.setForeground(Color.black);
+		statusText.setText("ok");
+	}
+
+	private void setStatusError(String error) {
 		statusText.setForeground(Color.red);
-		statusText.setText("error\n" + client.Error());
+		statusText.setText("error\n" + error);
 		enableDisableControls();
 	}
 
 	private void setJSON() {
-		jsonText.setText(client.JSON());						
+		jsonText.setText(client.getJSON());						
 	}
 
 	private void enableDisableControls() {
-		boolean connected = client.Connected();
+		boolean connected = client.isConnected();
 		connectLocalButton.setEnabled(!connected);
 		connectLocalMenu.setEnabled(!connected);
 		connectButton.setEnabled(!connected);
@@ -301,12 +333,10 @@ public class MainForm extends JFrame implements ActionListener {
 
 	private void processResponse() {
 		// check if it is result set
-		if (client.RowCount() > 0 && client.ColumnCount() > 0) {
+		if (client.getRowCount() > 0 && client.getColumnCount() > 0) {
 			updateDataset(); 
 		}
-		//            
-		if (client.Failed());//resultsTabContainer.SelectedTab = statusTab;
-		setStatus();
+		setStatusOk();
 		setJSON();			
 	}
 
@@ -320,10 +350,13 @@ public class MainForm extends JFrame implements ActionListener {
 			clearResults();
 			return;
 		}
-		if (client.WaitForPubSub(PUBSUB_TIMEOUT)) updateDataset();
-		if (client.Failed()) {
-			doneExecuting();		
-			return;
+		try {
+			client.waitForPubSub(PUBSUB_TIMEOUT);
+			updateDataset();
+		} catch (Exception e) {
+			doneExecuting();
+			setStatusError(e.getMessage());
+			return;	
 		}
 		// release control to gui thread and post back to continue polling for pubsub events
 		EventQueue.invokeLater(new Runnable() {
@@ -334,37 +367,15 @@ public class MainForm extends JFrame implements ActionListener {
 	}
 
 	private void updateDataset() {
-		if (!(client.RowCount() > 0 && client.ColumnCount() > 0)) return;
-		dataset.SyncColumns(client);
-		while (client.NextRow() && !cancelExecuteFlag) {
-			dataset.ProcessRow(client);
-		}	
+		try {
+			if (!(client.getRowCount() > 0 && client.getColumnCount() > 0)) return;
+			dataset.syncColumns(client);
+			while (client.nextRow() && !cancelExecuteFlag) {
+				dataset.processRow(client);
+			}	
+		} catch (Exception e) {
+			setStatusError(e.getMessage());
+		}
 	}
-
-	private JMenuItem connectLocalMenu;
-	private JButton connectLocalButton;
-	private JMenuItem connectMenu;
-	private JButton connectButton;
-	private JMenuItem disconnectMenu;
-	private JButton disconnectButton;
-	private JMenuItem executeMenu;
-	private JButton executeButton;
-	private JMenuItem cancelMenu;
-	private JButton cancelButton;
-	private JMenuItem simulateMenu;
-	private JTextArea queryText;
-	private JTabbedPane resultsTabContainer;
-	private JTextArea statusText;
-	private JTextArea jsonText;
-	private pubsubsql.Client client = new pubsubsql.Client();
-	private String connectedAddress = "";
-	private boolean cancelExecuteFlag = false;
-	private TableDataset dataset = new TableDataset();
-	private int FLASH_TIMER_INTERVAL = 150;	
-	private int PUBSUB_TIMEOUT = 5;
-	private TableView tableView = new TableView(FLASH_TIMER_INTERVAL * 2000000, dataset); 
-	private Timer timer;	
-	private Simulator simulator = new Simulator();
-	private AboutForm aboutForm;
 }
 

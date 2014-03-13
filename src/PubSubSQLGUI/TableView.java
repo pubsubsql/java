@@ -17,6 +17,9 @@ import java.util.*;
 
 public class TableView extends JPanel {
 	public int FLASH_TIMEOUT;
+	private TableDataset dataset;	
+	private JTable table;
+	private TableModel model;
 		
 	public TableView(int flashTimeout, TableDataset dataset) {
 		this.FLASH_TIMEOUT = flashTimeout;
@@ -28,7 +31,7 @@ public class TableView extends JPanel {
 		add(new JScrollPane(table));
 	}
 
-	public void Update() {
+	public void update() {
 		model.Update();
 	}
 
@@ -36,33 +39,33 @@ public class TableView extends JPanel {
 	private class TableModel extends AbstractTableModel {
 		public void Update() {
 			boolean structureChanged = false;
-			if (dataset.RowCount() != rows) structureChanged = true;
-			if (dataset.ColumnCount() != cols) structureChanged = true;
-			if (dataset.ResetDirtySchema()) structureChanged = true;
-			rows = dataset.RowCount();
-			cols = dataset.ColumnCount();
+			if (dataset.getRowCount() != rows) structureChanged = true;
+			if (dataset.getColumnCount() != cols) structureChanged = true;
+			if (dataset.resetDirtySchema()) structureChanged = true;
+			rows = dataset.getRowCount();
+			cols = dataset.getColumnCount();
 			if (structureChanged) fireTableStructureChanged();
 			else fireTableDataChanged();
 		}
 
 		// AbstractTableModel
 		public int getRowCount() {
-			return dataset.RowCount();
+			return dataset.getRowCount();
 		}
 
 		public int getColumnCount() {
-			return dataset.ColumnCount();
+			return dataset.getColumnCount();
 		}
 
 		public Object getValueAt(int r, int c) {
-			ArrayList<TableDataset.Cell> row = dataset.Row(r);				
+			ArrayList<TableDataset.Cell> row = dataset.getRow(r);				
 			if (row.size() <= c) return null;
 			return row.get(c);
 		}
 
 		@Override
 		public String getColumnName(int c) {
-			return dataset.Column(c);		
+			return dataset.getColumn(c);		
 		}
 
 		private int rows = 0;
@@ -88,8 +91,4 @@ public class TableView extends JPanel {
 			return this;
 		}
 	}
-
-	private TableDataset dataset;	
-	private JTable table;
-	private TableModel model;
 }

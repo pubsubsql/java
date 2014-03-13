@@ -12,6 +12,13 @@
 import java.util.*;
 
 public class TableDataset {
+	private ArrayList<String> columns = new ArrayList<String>();
+	private Hashtable<String, Integer> columnOrdinals = new Hashtable<String, Integer>();
+	private ArrayList<ArrayList<Cell>> rows = new ArrayList<ArrayList<Cell>>();
+	private Hashtable<String, ArrayList<Cell>> idsToRows = new Hashtable<String, ArrayList<Cell>>();
+	private volatile boolean dirtyData = false;
+	private volatile boolean dirtySchema = false;
+
 	public static class Cell {
 		public String Value;
 		public long LastUpdated;
@@ -22,19 +29,19 @@ public class TableDataset {
 		}	
 	}
 
-	public boolean ResetDirtyData() {
+	public boolean resetDirtyData() {
 		boolean ret = dirtyData;
 		dirtyData = false;
 		return ret;
 	}
 
-	public boolean ResetDirtySchema() {
+	public boolean resetDirtySchema() {
 		boolean ret = dirtySchema;
 		dirtySchema = false;
 		return ret;
 	}	
 
-	public void Clear() {
+	public void clear() {
 		columns.clear();
 		columnOrdinals.clear();
 		rows.clear();
@@ -43,8 +50,8 @@ public class TableDataset {
 		dirtySchema = true;
 	}
 
-	public void SyncColumns(pubsubsql.Client client) {
-		for(String col : client.Columns()) {
+	public void syncColumns(pubsubsql.Client client) {
+		for(String col : client.getColumns()) {
 			if (!columnOrdinals.containsKey(col)) {
 				dirtySchema = true;
 				dirtyData = true;
@@ -55,11 +62,11 @@ public class TableDataset {
 		}
 	}
 
-	public void ProcessRow(pubsubsql.Client client) {
+	public void processRow(pubsubsql.Client client) {
 		dirtyData = true;
-		String id = client.Value("id");
+		String id = client.getValue("id");
 		ArrayList<Cell> row = null;
-		switch (client.Action()) {
+		switch (client.getAction()) {
 			case "select":
 			case "add":
 			case "insert":
@@ -67,7 +74,7 @@ public class TableDataset {
 				row = new ArrayList<Cell>(columns.size());
 				// for each selct operations columns are always in the same order
 				for (String col : columns) {
-					row.add(new Cell(client.Value(col)));	
+					row.add(new Cell(client.getValue(col)));	
 				}
 				rows.add(row);
 				if (id.length() > 0) {
@@ -77,14 +84,14 @@ public class TableDataset {
 			case "update":
 				row = idsToRows.get(id);
 				if (row != null) {
-					for (String col : client.Columns()) {
+					for (String col : client.getColumns()) {
 						Integer ordinal = columnOrdinals.get(col);
 						// auto expand row
 						for (int i = row.size(); i <= ordinal; i++) {
 							row.add(new Cell(""));
 						}
 						Cell cell = row.get(ordinal);
-						cell.Value = client.Value(col);
+						cell.Value = client.getValue(col);
 						cell.LastUpdated = System.nanoTime();
 					}
 				}
@@ -101,31 +108,24 @@ public class TableDataset {
 		}
 	}
 	
-	public ArrayList<Cell> Row(int rowIndex) {
+	public ArrayList<Cell> getRow(int rowIndex) {
 		if (rowIndex < rows.size()) return rows.get(rowIndex);
 		return new ArrayList<Cell>();
 	}
 
-	public int RowCount() {
+	public int getRowCount() {
 		return rows.size();
 	}
 
-	public int ColumnCount() {
+	public int getColumnCount() {
 		return columns.size();
 	}
 	
-	public String Column(int colIndex) {
+	public String getColumn(int colIndex) {
 		if (colIndex < columns.size()) {
 			return columns.get(colIndex);
 		}
 		return "";
 	}
-
-	private ArrayList<String> columns = new ArrayList<String>();
-	private Hashtable<String, Integer> columnOrdinals = new Hashtable<String, Integer>();
-	private ArrayList<ArrayList<Cell>> rows = new ArrayList<ArrayList<Cell>>();
-	private Hashtable<String, ArrayList<Cell>> idsToRows = new Hashtable<String, ArrayList<Cell>>();
-	private volatile boolean dirtyData = false;
-	private volatile boolean dirtySchema = false;
 } 
 

@@ -111,7 +111,7 @@ public class Client {
 	}
 
 	/**
-	* stream sends a command against the pubsubsql server.
+	* stream sends a command to the pubsubsql server.
 	* The pubsubsql server does not return a response to the Client.
 	*/
 	public void stream(String command) throws java.io.IOException, IllegalArgumentException, Exception {

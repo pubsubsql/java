@@ -468,9 +468,11 @@ public class ClientTest {
 		failCount++;	
 	}
 
+	/*
 	private void print(String message) {
 		System.out.println(message);
 	}
+	*/
 
 	private void register(String function) {
 		currentFunction = function;
@@ -495,6 +497,7 @@ public class ClientTest {
 		ASSERT_DISCONNECT(client);
 	}
 
+	/*
 	private void key(String column) {
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
@@ -502,7 +505,9 @@ public class ClientTest {
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_DISCONNECT(client);
 	}
+	*/
 
+	/*
 	private void tag(String column) {
 		Client client = new Client();
 		ASSERT_CONNECT(client, ADDRESS, true);
@@ -510,6 +515,7 @@ public class ClientTest {
 		ASSERT_EXECUTE(client, command, true);
 		ASSERT_DISCONNECT(client);
 	}
+	*/
 	
 	public void ASSERT_TRUE(boolean val, String message) {
 		if (!val) {

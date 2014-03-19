@@ -14,6 +14,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class MainForm extends JFrame implements ActionListener {
+	private static final long serialVersionUID = 1L;
 	private final String DEFAULT_ADDRESS = "localhost:7777";
 	private JMenuItem connectLocalMenu;
 	private JButton connectLocalButton;
@@ -149,24 +150,32 @@ public class MainForm extends JFrame implements ActionListener {
 
 	// events
 	Action new_ = new AbstractAction("New", createImageIcon("images/New.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
-			
+			// void
 		}
 	};
 	
 	Action exit = new AbstractAction("Exit") {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			System.exit(0);
 		}
 	};
 
 	Action connectLocal = new AbstractAction("Connect to " + DEFAULT_ADDRESS, createImageIcon("images/ConnectLocal.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			connect(DEFAULT_ADDRESS);
 		}
 	};
 
 	Action connect = new AbstractAction("Connect...", createImageIcon("images/Connect.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			ConnectForm connectForm = new ConnectForm(MainForm.this);	
 			connectForm.setLocationRelativeTo(MainForm.this);
@@ -192,6 +201,8 @@ public class MainForm extends JFrame implements ActionListener {
 	}
 
 	Action disconnect = new AbstractAction("Disconnect", createImageIcon("images/Disconnect.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			simulator.stop();
 			cancelExecuteFlag = true;
@@ -225,12 +236,16 @@ public class MainForm extends JFrame implements ActionListener {
 	}
 
 	Action execute = new AbstractAction("Execute", createImageIcon("images/Execute2.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			executeCommand();
 		}
 	};
 
 	Action cancelExecute = new AbstractAction("Cancel Executing Query", createImageIcon("images/Stop.png")) {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			simulator.stop();
 			cancelExecuteFlag = true;
@@ -238,6 +253,8 @@ public class MainForm extends JFrame implements ActionListener {
 	};
 
 	Action simulate = new AbstractAction("Simulate") {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			simulator.stop();		
 			simulator.Address = connectedAddress;
@@ -259,6 +276,8 @@ public class MainForm extends JFrame implements ActionListener {
 	};
 
 	Action about = new AbstractAction("About") {
+		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent event) {
 			if (aboutForm == null) aboutForm = new AboutForm(MainForm.this);	
 			aboutForm.setLocationRelativeTo(MainForm.this);

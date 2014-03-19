@@ -10,12 +10,12 @@
  */
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 
 public class TableView extends JPanel {
+	private static final long serialVersionUID = 1L;
 	public int FLASH_TIMEOUT;
 	private TableDataset dataset;	
 	private JTable table;
@@ -37,6 +37,8 @@ public class TableView extends JPanel {
 
 	// Model
 	private class TableModel extends AbstractTableModel {
+		private static final long serialVersionUID = 1L;
+
 		public void Update() {
 			boolean structureChanged = false;
 			if (dataset.getRowCount() != rows) structureChanged = true;
@@ -74,6 +76,8 @@ public class TableView extends JPanel {
 
 	// Renderer	
 	private class CellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, 
 															boolean hasFocus, int r, int c) {

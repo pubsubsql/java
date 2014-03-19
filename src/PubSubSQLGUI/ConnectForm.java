@@ -14,6 +14,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class ConnectForm extends JDialog {
+	private static final long serialVersionUID = 1L;
 	private boolean ok = false;
 	private ConnectPanel panel;
 

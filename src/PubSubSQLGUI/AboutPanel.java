@@ -9,18 +9,16 @@
  *
  */
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 class AboutPanel extends javax.swing.JPanel {
+	private static final long serialVersionUID = 1L;
 	public JButton okButton;
 
 	public AboutPanel() {
 		initComponents();
 	}
 
-	@SuppressWarnings("unchecked")
     private void initComponents() {
 		okButton = new JButton();
         JScrollPane scrollPane = new JScrollPane();

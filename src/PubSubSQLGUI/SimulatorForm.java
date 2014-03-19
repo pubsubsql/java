@@ -14,6 +14,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class SimulatorForm extends JDialog {
+	private static final long serialVersionUID = 1L;
 	private SimulatorPanel panel;
 	private boolean ok = false;
 

@@ -9,12 +9,11 @@
  *
  */
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 class SimulatorPanel extends javax.swing.JPanel {
-    public JSpinner columnsSpinner;
+	private static final long serialVersionUID = 1L;
+	public JSpinner columnsSpinner;
     public JSpinner rowsSpinner;
     public JButton okButton;
 	public JButton cancelButton;
@@ -23,7 +22,6 @@ class SimulatorPanel extends javax.swing.JPanel {
 		initComponents();
 	}
 
-	@SuppressWarnings("unchecked")
     private void initComponents() {
 		JLabel columnsLabel = new JLabel();
         JLabel rowsLabel = new JLabel();

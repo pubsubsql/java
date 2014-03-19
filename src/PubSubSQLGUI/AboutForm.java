@@ -14,6 +14,8 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class AboutForm extends JDialog {
+	private static final long serialVersionUID = 1L;
+
 	public AboutForm(JFrame owner) {
 		super(owner, "About PubSubSQL Interactive Query", true);		
 		AboutPanel panel = new AboutPanel();

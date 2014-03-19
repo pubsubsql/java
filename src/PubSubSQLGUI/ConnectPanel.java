@@ -9,12 +9,11 @@
  *
  */
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 class ConnectPanel extends JPanel {
-    public  JTextField hostText;
+	private static final long serialVersionUID = 1L;
+	public  JTextField hostText;
     public  JSpinner portSpinner;
     public  JButton okButton;
 	public  JButton cancelButton;
@@ -23,7 +22,6 @@ class ConnectPanel extends JPanel {
 		initComponents();
 	}
 
-	@SuppressWarnings("unchecked")
     private void initComponents() {
         JLabel hostLabel = new JLabel();
         JLabel portLabel = new JLabel();

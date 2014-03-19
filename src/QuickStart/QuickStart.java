@@ -10,7 +10,6 @@
  */
 
 import pubsubsql.Client;
-import java.util.*;
 
 /* MAKE SURE TO RUN PUBSUBSQL SERVER WHEN RUNNING THE EXAMPLE */
 
@@ -25,8 +24,8 @@ public class QuickStart {
 	}
 
 	private static void quickStart() throws Exception {
-		pubsubsql.Client client = new pubsubsql.Client();
-		pubsubsql.Client subscriber = new pubsubsql.Client();
+		Client client = new Client();
+		Client subscriber = new Client();
 
 		//----------------------------------------------------------------------------------------------------
 		// CONNECT

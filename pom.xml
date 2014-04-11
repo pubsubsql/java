@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.pubsubsql</groupId>
+	<artifactId>PubSubSql</artifactId>
+	<version>123456</version> <!-- this is metadata version -->
+	<name>${project.artifactId}</name>
+	<description>${project.artifactId}</description>
+	<packaging>pom</packaging>
+
+	<properties>
+	
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<main.basedir>${project.basedir}</main.basedir>		
+		<parent.pom.name>pom.xml</parent.pom.name>
+		
+	</properties>
+
+	<modules>
+		<module>Client</module>
+		<module>ClientTest</module>
+		<module>QuickStart</module>
+		<module>PubSubSqlGui</module>
+	</modules>
+</project>

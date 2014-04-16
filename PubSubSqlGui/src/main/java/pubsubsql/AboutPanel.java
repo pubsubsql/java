@@ -9,6 +9,8 @@
  *
  */
 
+package pubsubsql;
+
 import javax.swing.*;
 
 class AboutPanel extends javax.swing.JPanel {

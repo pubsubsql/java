@@ -9,6 +9,8 @@
  *
  */
 
+package pubsubsql;
+
 import java.util.*;
 
 public class TableDataset {

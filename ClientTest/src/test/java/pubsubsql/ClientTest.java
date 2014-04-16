@@ -1,4 +1,3 @@
-package pubsubsql;
 /* Copyright (C) 2014 CompleteDB LLC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -9,6 +8,8 @@ package pubsubsql;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
+
+package pubsubsql;
 
 import pubsubsql.Client;
 

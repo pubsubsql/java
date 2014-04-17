@@ -11,8 +11,9 @@
 	<properties>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<main.basedir>${project.basedir}</main.basedir>
+		<main.basedir>${project.basedir}</main.basedir>		
 		<parent.pom.name>pom.xml</parent.pom.name>
+		<java.lib.dir>lib</java.lib.dir>
 
 	</properties>
 

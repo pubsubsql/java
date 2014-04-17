@@ -292,7 +292,7 @@ public class MainForm extends JFrame implements ActionListener {
 	}
 
 	private ImageIcon createImageIcon(String path) {
-		java.net.URL url = getClass().getResource(path);
+		java.net.URL url = getClass().getResource("/" + path);
 		if (url == null) return null;
 		return new ImageIcon(url);
 	}

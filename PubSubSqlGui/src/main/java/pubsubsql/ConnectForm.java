@@ -22,7 +22,7 @@ public class ConnectForm extends JDialog {
 
 	public ConnectForm(JFrame owner) {
 		super(owner, "Connect", true);		
-		ConnectPanel panel = new ConnectPanel();
+		panel = new ConnectPanel();
 		add(panel, BorderLayout.CENTER);
 		pack();
 		setResizable(false);

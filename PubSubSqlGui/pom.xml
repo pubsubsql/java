@@ -13,9 +13,51 @@
 	<packaging>jar</packaging>
 	<properties>
 
-		<main.basedir>${project.parent.parent.basedir}</main.basedir>
+		<main.basedir>${project.parent.basedir}</main.basedir>
+		<java.bin.path>${main.basedir}/${java.bin.dir}</java.bin.path>
+		<java.lib.path>${main.basedir}/${java.lib.dir}</java.lib.path>
+		<output.jar.name>pubsubsqlgui</output.jar.name>
+		<java.main.class>pubsubsql.PubSubSQLGUI</java.main.class>
 
 	</properties>
+	<build>
+		<finalName>${output.jar.name}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<outputDirectory>${java.bin.path}</outputDirectory>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifest>
+							<mainClass>${java.main.class}</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>${manifest.class.path}</Class-Path>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.4.1</version>
+				<inherited>false</inherited>
+				<configuration>
+					<failOnError>false</failOnError>
+					<filesets>
+						<fileset>
+							<directory>${java.bin.path}</directory>
+							<includes>
+								<include>${output.jar.name}.jar</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>com.pubsubsql.client</groupId>

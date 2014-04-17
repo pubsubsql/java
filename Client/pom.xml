@@ -14,13 +14,14 @@
 	<properties>
 
 		<main.basedir>${project.parent.basedir}</main.basedir>
+		<java.bin.path>${main.basedir}/${java.bin.dir}</java.bin.path>
 		<java.lib.path>${main.basedir}/${java.lib.dir}</java.lib.path>
-		<java.client.jar.name>pubsubsql</java.client.jar.name>
+		<output.jar.name>pubsubsql</output.jar.name>
 		<gson.version>2.2.4</gson.version>
 
 	</properties>
 	<build>
-		<finalName>${java.client.jar.name}</finalName>
+		<finalName>${output.jar.name}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -28,6 +29,9 @@
 				<version>2.3.1</version>
 				<configuration>
 					<outputDirectory>${java.lib.path}</outputDirectory>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+					</archive>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -71,8 +75,8 @@
 						<fileset>
 							<directory>${java.lib.path}</directory>
 							<includes>
-								<include>${java.client.jar.name}.jar</include>
-								<include>${java.client.jar.name}-javadoc.jar</include>
+								<include>${output.jar.name}.jar</include>
+								<include>${output.jar.name}-javadoc.jar</include>
 								<include>gson-${gson.version}.jar</include>
 							</includes>
 						</fileset>

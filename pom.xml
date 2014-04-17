@@ -13,7 +13,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<main.basedir>${project.basedir}</main.basedir>		
 		<parent.pom.name>pom.xml</parent.pom.name>
+		<java.bin.dir>bin</java.bin.dir>
 		<java.lib.dir>lib</java.lib.dir>
+		<manifest.class.path>../${java.lib.dir}/pubsubsql.jar ../${java.lib.dir}/gson-2.2.4.jar</manifest.class.path>
 
 	</properties>
 

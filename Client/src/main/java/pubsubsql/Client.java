@@ -47,7 +47,7 @@ public class Client {
 		if (portIndex >= address.length()) {
 			throw new IllegalArgumentException("Port is not provided");
 		}	
-		int port = toPort(address.substring(portIndex));
+		port = toPort(address.substring(portIndex));
 		if (port == 0) {
 			throw new IllegalArgumentException("Invalid port");
 		}
@@ -262,10 +262,12 @@ public class Client {
 		}
 	}
 
+	/*
 	// helper functions
 	private boolean IsNullOrEmpty(String str) {
 		return (str == null || str.length() == 0);
 	}
+	*/
 
 	private String NotNull(String str) {
 		if (str == null) return "";
